@@ -1,6 +1,4 @@
 with open("day_02/input.txt", "r") as f:
-    # one line input
-    # id_ranges = [tuple(map(int, id_range.split("-"))) for id_range in f.readline().split(",")]
     id_ranges = [id_range.split("-") for id_range in f.readline().split(",")]
 
 invalid_ids = list()
