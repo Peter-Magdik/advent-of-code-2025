@@ -1,25 +1,31 @@
-with open("day_02/input.txt", "r") as f:
-    id_ranges = [id_range.split("-") for id_range in f.readline().split(",")]
+def invalid_ids_in_range(first: str, last: str) -> set[int]:
+    result = set()
 
-invalid_ids = list()
+    max_digits = len(last)
+    first, last = int(first), int(last)
+    
+    for unit_len in range(1, max_digits // 2 + 1):
+        start_unit = 10 ** (unit_len - 1)
+        end_unit = 10 ** unit_len
 
-for first, last in id_ranges:
-    range_invalid_ids = set()
-    last_len = len(last)
-    for chunk_size in range(last_len // 2):
-        chunk = "1" + "0" * chunk_size
-
-        for multiplier in range(len(first) // len(chunk), len(last) // len(chunk) + 1):
-            while (temp:=int(chunk * multiplier)) <= int(last):
-                if temp >= int(first):
-                    range_invalid_ids.add(temp)
-                elif int(first) <= int(str(temp) + chunk) <= int(last):
-                    range_invalid_ids.add(int(str(temp) + chunk))
-                if len(chunk) < len(str(int(chunk) + 1)):
+        for unit in range(start_unit, end_unit):
+            s = str(unit)
+            candidate_str = s + s
+            while True:
+                candidate = int(candidate_str)
+                if candidate > last:
                     break
-                chunk = str(int(chunk) + 1)
-    invalid_ids.extend(range_invalid_ids)
+                if candidate >= first:
+                    result.add(candidate)
+                candidate_str += s
 
-# too high: 41662374103
+    return result
 
-print(sum(invalid_ids))
+with open("day_02/input.txt", "r") as f:
+    id_ranges = [id_range.split("-") for id_range in f.readline().strip().split(",") if id_range]
+
+total = 0
+for first, last in id_ranges:
+    total += sum(invalid_ids_in_range(first, last))
+
+print(total)
