@@ -1,55 +1,27 @@
-def point_on_edge(px, py, x1, y1, x2, y2):
-    if not (min(x1,x2) <= px <= max(x1,x2) and min(y1,y2) <= py <= max(y1,y2)):
-        return False
-
-    cross = (px - x1) * (y2 - y1) - (py - y1) * (x2 - x1)
-    return cross == 0
-
-def point_in_polygon(px, py, polygon):
-    n = len(polygon)
-    inside = False
-
-    j = n - 1
-    for i in range(n):
-        xi, yi = polygon[i]
-        xj, yj = polygon[j]
-
-        if point_on_edge(px, py, xi, yi, xj, yj):
-            return True
-
-        if ((yi > py) != (yj > py)) and (px <= (xj - xi) * (py - yi) / (yj - yi) + xi):
-            inside = not inside
-        j = i
-
-    return inside
-
-def is_valid_rectangle(rectangle, shape):
+def is_valid_rectangle(rectangle):
     x1, y1 = rectangle[2]
     x2, y2 = rectangle[3]
 
-    rx_min, rx_max = min(x1, x2), max(x1, x2)
-    ry_min, ry_max = min(y1, y2), max(y1, y2)
+    x_min, x_max = min(x1, x2), max(x1, x2)
+    y_min, y_max = min(y1, y2), max(y1, y2)
 
-    if not (point_in_polygon(x1, y2, shape)) and ( point_in_polygon(x2, y1, shape)):
-        return False
-
-    for px in range(min(x1, x2), max(x1, x2) + 1):
-        for py in range(min(y1, y2), max(y1, y2) + 1):
-            on_border = (px == rx_min or px == rx_max or py == ry_min or py == ry_max)
-        
-            dx = rx_max - rx_min
-            dy = ry_max - ry_min
-            on_diag1 = (dx == 0 or dy == 0) or ((px - rx_min) * dy == (py - ry_min) * dx)
-            on_diag2 = (dx == 0 or dy == 0) or ((px - rx_min) * dy == (ry_max - py) * dx)
-            
-            if not (on_border or on_diag1 or on_diag2):
-                continue
-            if not point_in_polygon(px, py, shape):
+    for (px1, py1), (px2, py2) in polygon_edges:
+        if py1 == py2:
+            if y_min < py1 < y_max and min(px1,px2) < x_max and max(px1,px2) > x_min:
                 return False
+        else:
+            if x_min < px1 < x_max and min(py1,py2) < y_max and max(py1,py2) > y_min:
+                return False
+    
     return True
 
 with open("day_09/input.txt") as f:
     shape: list[tuple[int, int]] = [tuple(map(int, line.strip().split(","))) for line in f.readlines()]
+
+polygon_edges: list[tuple[tuple[int, int], tuple[int, int]]] = list()
+for index in range(len(shape) - 1):
+    polygon_edges.append((shape[index], shape[index + 1]))
+polygon_edges.append((shape[-1], shape[0]))
 
 rectangles: list[tuple[int, int, tuple[int, int], tuple[int, int]]] = list() 
 
@@ -62,10 +34,8 @@ for i in range(len(shape)):
 rectangles.sort(key=lambda x: x[0] * x[1], reverse=True)
 
 for i in range(len(rectangles)):
-    if is_valid_rectangle(rectangles[i], shape):
+    if is_valid_rectangle(rectangles[i]):
         print(rectangles[i][0] * rectangles[i][1])
         break
     else:
         print(f"Checked {i}/{len(rectangles)}")
-
-# WA: 3010021322
