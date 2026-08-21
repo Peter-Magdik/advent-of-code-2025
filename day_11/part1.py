@@ -1,6 +1,6 @@
 successors: dict[str, list[str]] = dict()
 
-with open('data.txt', 'r') as file:
+with open('input.txt', 'r') as file:
     for line in file:
         parts = line.strip().split(': ')
         if len(parts) < 2:
