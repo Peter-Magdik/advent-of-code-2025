@@ -1,3 +1,6 @@
+from functools import lru_cache
+
+
 successors: dict[str, list[str]] = dict()
 
 with open('day_11/input.txt', 'r') as file:
@@ -11,23 +14,27 @@ with open('day_11/input.txt', 'r') as file:
             successors[key].extend(values)
         else:
             successors[key] = values
+# start: svr
+# required: dac, fft
+# end: out
+required_index = {
+    'dac': 0,
+    'fft': 1
+}
+FULL_MASK = (1 << len(required_index)) - 1
 
-paths: set[tuple[str, ...]] = set()
-required_nodes: set[str] = {'svr', 'dac', 'fft'}
+@lru_cache(maxsize=None)
+def dp(node, mask):
+    if node == 'out':
+        return 1 if mask == FULL_MASK else 0
 
-def dfs(current: str, current_path: list[str], visited: set[str]) -> None:
-    print(f"Visiting: {current}, Current Path: {current_path}, Visited: {visited}")
-    for successor in successors.get(current, []):
-        if successor == 'out' and required_nodes.issubset(set(current_path)):
-            paths.add(tuple(current_path + ['out']))
-            print(f"Found path: {current_path + ['out']}")
-        elif successor not in visited:
-            visited.add(successor)
-            current_path.append(successor)
-            dfs(successor, current_path, visited)
-            current_path.pop()
-            visited.remove(successor)
+    total = 0
+    for successor in successors[node]:
+        new_mask = mask
+        if successor in required_index:
+            new_mask |= (1 << required_index[successor])
+        total += dp(successor, new_mask)
+    
+    return total
 
-print("Starting DFS from 'svr'...")
-dfs('svr', ['svr'], {'svr'})
-print(len(paths))
+print(dp('svr', 0b0))
